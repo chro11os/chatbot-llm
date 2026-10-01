@@ -11,4 +11,4 @@ def prompt():
 
     with memory_directory.open("a") as file:
         file.write(formatted_prompt)
-        call_api(formatted_prompt)    
+        call_api(formatted_prompt)
