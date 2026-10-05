@@ -1,3 +1,3 @@
-from prompt.prompt import prompt
+from core.prompt import prompt
 
 prompt()
