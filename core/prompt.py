@@ -12,6 +12,8 @@ def prompt():
     memory_directory.touch(exist_ok=True)
 
     formatted_prompt = json.dumps(history_list, indent=4)
+    json.load(formatted_prompt)
+    
     history_list.append(userinput)
 
     with memory_directory.open("a+") as file:
