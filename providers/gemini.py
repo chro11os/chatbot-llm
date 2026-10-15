@@ -11,3 +11,4 @@ def call_api(text):
         json={"model": "gemini-3.1-flash-lite", "input": text},
         timeout=30.0,
     )
+    print(response)
