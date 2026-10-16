@@ -5,3 +5,4 @@ userinput = input("prompt: ")
 def prompt():
     # call_api(userinput)
     add_to_history(userinput)
+    

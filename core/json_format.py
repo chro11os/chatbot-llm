@@ -13,3 +13,4 @@ def add_to_history(text):
     # to do:
         # fix the AttributeError: 'str' object has no attribute 'append'
         # crashed at data.append(text)
+        
