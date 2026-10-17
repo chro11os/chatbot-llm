@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import os
 import httpx
 from dotenv import load_dotenv
@@ -13,9 +15,15 @@ def call_api(text):
         json={"model": MODEL, "input": text},
         timeout=30.0,
     )
-    
     response.raise_for_status()
     data = response.json()
-    reply = next(o["text"] for o in data["outputs"] if o["type"] == "text")
+    Path("memory/lastresponse.json").write_text(json.dumps(data, indent=4))
+
+    reply = ""
+    for step in data["steps"]:
+        if step["type"] == "model_output":
+            for part in step["content"]:
+                if part["type"] == "text":
+                    reply += part["text"]
     print (reply)
     return reply

@@ -1,4 +1,10 @@
 [
-    "prompt 1 text",
-    "prompt 2 text2"
+    {
+        "role": "user",
+        "text": "userinput"
+    },
+    {
+        "role": "model",
+        "text": "reply"
+    }
 ]

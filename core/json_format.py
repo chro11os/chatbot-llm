@@ -10,7 +10,10 @@ def add_to_history(text):
     data.append(text)
     memory_directory.write_text(json.dumps(data, indent=4))
 
-    # to do:
-        # fix the AttributeError: 'str' object has no attribute 'append'
-        # crashed at data.append(text)
+def clear_memory(userinput):
+    if userinput == "/clear":
+        memory_directory.write_text("[]")
+        print ("chat history cleared")
+    else:
+        return
         
