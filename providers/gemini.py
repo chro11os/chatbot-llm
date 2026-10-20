@@ -29,3 +29,5 @@ def call_api(text):
                     reply += part["text"]
     print (reply)
     return reply
+
+    # i might be losing my mind
