@@ -11,6 +11,7 @@ def prompt():
                 clear_memory(userinput)    
             case "/quit" | "/end":
                 end = True
+
         reply = call_api(userinput)
         add_to_history({"role": "user", "text": userinput})
         add_to_history({"role": "model", "text": reply})

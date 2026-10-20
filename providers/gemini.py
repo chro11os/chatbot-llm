@@ -4,7 +4,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 
-MODEL = "gemini-3.1-flash-lite"
+MODEL = "gemini-3.5-flash-lite"
 
 def call_api(text):
     load_dotenv()
@@ -15,6 +15,8 @@ def call_api(text):
         json={"model": MODEL, "input": text},
         timeout=30.0,
     )
+    if response.is_error:
+        print(response.text)
     response.raise_for_status()
     data = response.json()
     Path("memory/lastresponse.json").write_text(json.dumps(data, indent=4))
