@@ -2,3 +2,4 @@ pydantic
 asyncio
 python-dotenv
 httpx
+fastapi[standard]
