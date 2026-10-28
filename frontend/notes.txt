@@ -1,0 +1,8 @@
+function send(formData: FormData) {
+    fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'Application/json' },
+        body: JSON.stringify({ text: formData.get('text') }),
+    })
+}
+
