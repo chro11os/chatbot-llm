@@ -14,5 +14,21 @@
     {
         "role": "model",
         "text": "Command recognized. Goodbye! Feel free to reach out whenever you need assistance again."
+    },
+    {
+        "role": "user",
+        "text": "What is the talles building in the world"
+    },
+    {
+        "role": "model",
+        "text": "The tallest building in the world is the **Burj Khalifa**, located in Dubai, United Arab Emirates. \n\nHere are some key facts about it:\n* **Height:** 828 meters (2,716.5 feet)\n* **Floors:** 163\n* **Opened:** January 4, 2010"
+    },
+    {
+        "role": "user",
+        "text": "how old is chat gpts public release"
+    },
+    {
+        "role": "model",
+        "text": "ChatGPT was publicly released on **November 30, 2022**. \n\nAs of June 2024, it is **1 year and 6 months** old (or about 1.5 years old)."
     }
 ]
