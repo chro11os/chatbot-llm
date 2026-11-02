@@ -19,3 +19,8 @@
 # Id like to be asked if i have any questions
 
 - When generating code, or other concepts ask me if i have any other questions, give me options of possible questions i might have.
+
+# Context
+
+- Write the plans we make or have on PLAN.md
+- Write the progress of the app to PROGRESS.md (get the context of the progress from the plan)
