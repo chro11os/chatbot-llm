@@ -9,4 +9,4 @@ export default function App() {
             <Chatbox onReply={setReply}/>
         </>
     );
-}        
+}
