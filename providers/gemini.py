@@ -13,7 +13,7 @@ def call_api(text):
         "https://generativelanguage.googleapis.com/v1beta/interactions",
         headers={"x-goog-api-key": API_KEY},
         json={"model": MODEL, "input": text},
-        timeout=30.0,
+        timeout=60.0,
     )
     if response.is_error:
         print(response.text)

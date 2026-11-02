@@ -1,5 +1,5 @@
-export default function Chatbox () {
-    function send(formData: FormData) {
+export default function Chatbox ({onReply}: {onReply: (text: string) => void}) {
+    async function send(formData: FormData) {
         fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
