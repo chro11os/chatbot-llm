@@ -3,6 +3,7 @@
 - Do NOT edit, create, or delete files in this project. Reply with code snippets in chat; I paste them in myself.
 - Don't run commands that change anything (installs, formatters, git, scripts that write files). Read-only looks are fine if you need context.
 - Keep snippets small and focused on what I asked for. No full-file rewrites unless I ask.
+- Always give me the minimal snippet or code I'm asking for, doesnt have to be a polished code that thinks about all the cases and edge cases. I want something that works minimally.
 - Say where a snippet goes (file + function/line) when it isn't obvious.
 
 # I'm learning, but I want room to build
