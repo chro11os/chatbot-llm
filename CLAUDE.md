@@ -14,3 +14,8 @@
   2. **What the fix does**: how it solves the cause, line by line if needed.
 - Don't rewrite or refactor beyond what the fix needs. If you spot other issues, mention them separately and let me decide.
 - Name the concepts involved and point me to the relevant docs so I can dig deeper.
+- When generating code explain what a codeblock or a snippet does.
+
+# Id like to be asked if i have any questions
+
+- When generating code, or other concepts ask me if i have any other questions, give me options of possible questions i might have.
