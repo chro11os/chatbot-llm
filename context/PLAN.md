@@ -57,3 +57,24 @@ chatbot-llm/
 - [ ] `uv sync` then `uv run fastapi dev server.py` starts on :8000.
 - [ ] `cd frontend && bun run dev`, send a message, check `memory/chatmemory.json` gets written.
 - [ ] `cd frontend && bun run build` passes (catches broken imports).
+
+## Render Gemini's Markdown replies
+
+Gemini replies in Markdown (`**bold**`, `### heading`, `* list`). `ReplyScreen` shows it as raw text, so the symbols show up and the newlines collapse.
+
+- [x] `cd frontend && bun add react-markdown @tailwindcss/typography`
+- [x] `frontend/src/index.css`: add `@plugin "@tailwindcss/typography";` under the Tailwind import.
+- [x] `frontend/src/components/replyscreen.tsx`: wrap the reply in `<div className="prose m-7"><Markdown>{reply}</Markdown></div>` (add `max-w-none` for full width).
+- [ ] Check in the browser: headings, bold and lists render with no leftover `**` / `###`.
+
+## Next up
+- [ ] Guard `chatbox.tsx` against error responses: check `res.ok` before `res.json()`. Right now any backend error (500, 504) makes `res.json()` throw inside the form action and React unmounts the whole page (blank screen).
+- [ ] Backend: catch Gemini errors other than timeouts (e.g. `httpx.HTTPStatusError`) in `/api/chat` so they return a clear status instead of a bare 500.
+- [ ] `ui/button.tsx`: add `border` so `border-gray-300` actually shows.
+
+## Later (ideas, not started)
+- Show a "thinking..." state while waiting for Gemini.
+- Show the whole conversation instead of only the latest reply.
+- Let `Button` / `TextBox` accept normal HTML props (`ComponentProps<'button'>`, `placeholder`, etc.).
+- Error boundary so a crash shows a message instead of a blank page.
+- Three-column harness UI.

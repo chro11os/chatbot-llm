@@ -1,4 +1,6 @@
-export default function Chatbox ({onReply}: {onReply: (text: string) => void}) {
+import Button from '../ui/button'
+import TextBox from '../ui/text-box'
+export default function Chatbox({ onReply }: { onReply: (text: string) => void }) {
   async function send(formData: FormData) {
           const res = await fetch('/api/chat', {
               method: 'POST',
@@ -10,14 +12,12 @@ export default function Chatbox ({onReply}: {onReply: (text: string) => void}) {
       }
 
     return (
-        <div className="justify-center items-center hover: bg-amber-300 m-7 flex">
+        <div className="justify-center items-center flex">
             <form action={send}>
                 <div className="items-center flex justify-center m-7">
-                    <input name="text" />
+                    <TextBox />
                 </div>
-                <div className="items-center flex justrify-center m-4">
-                    <button>Send</button>
-                </div>
+                    <Button>Send</Button>
             </form>
         </div>
     )
