@@ -1,11 +1,13 @@
 export default function Chatbox ({onReply}: {onReply: (text: string) => void}) {
-    async function send(formData: FormData) {
-        fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: formData.get('text') }),
-        })
-    }
+  async function send(formData: FormData) {
+          const res = await fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: formData.get('text') }),
+          })
+          const data = await res.json()
+          onReply(data.reply)
+      }
 
     return (
         <div className="justify-center items-center hover: bg-amber-300 m-7 flex">
