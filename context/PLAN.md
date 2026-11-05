@@ -72,6 +72,52 @@ Gemini replies in Markdown (`**bold**`, `### heading`, `* list`). `ReplyScreen` 
 - [ ] Backend: catch Gemini errors other than timeouts (e.g. `httpx.HTTPStatusError`) in `/api/chat` so they return a clear status instead of a bare 500.
 - [ ] `ui/button.tsx`: add `border` so `border-gray-300` actually shows.
 
+## Chat storage engine architecture
+
+Tickets live in MILESTONE.md. This section is the design they build on.
+
+### What it replaces
+- `add_to_history` (`core/json_format.py`) rewrites the whole file for every message, so a crash mid-write can lose all history.
+- `chat` (`server.py`) saves the two messages of a turn separately, so a crash between them leaves a user message with no reply (CSE-2).
+- `chat` is a plain `def`, so FastAPI runs it on a thread pool and concurrent requests can overwrite each other (CSE-12).
+- `/api/history` reads the JSON file directly, skipping `json_format.py`, so CSE-16 has to change both.
+
+### Layers
+
+```
+server.py / core/prompt.py       same calls as today
+         |
+core/json_format.py              same function names, new insides
+         |  ctypes (bytes + lengths)
+======== Python / C++ boundary ========
+C API: extern "C" functions      thin: no logic, catches all exceptions
+         |
+Engine: class                    owns file descriptor, mutex, open/append/read/clear
+         |             |
+Record codec           OS calls
+bytes <-> message      open, write, fsync, flock, ftruncate
++ checksum, no I/O     |
+                 memory/<log file>
+```
+
+### Paths
+- Write: encode record -> take lock -> write at end of file -> flush to disk -> release -> return success. Success only comes after the flush (CSE-7).
+- Read: take lock -> scan from the start, decoding each record -> return all messages.
+- Open: take process lock -> check file identity -> scan records -> handle a bad record. A torn final record (CSE-8) and middle-of-file damage (CSE-9) are decided separately.
+
+### Rules
+- Mutex for threads in one process (CSE-12), file lock for other processes (CSE-13). Both are needed.
+- `ctypes` releases the GIL during calls, so threads really do enter the C++ code at the same time.
+- No C++ exception may cross `extern "C"`: catch them and return error codes.
+- Python holds the engine as an opaque handle (`void*`).
+- Memory allocated in C++ is freed in C++, so read results need a matching free function.
+- Text crosses the boundary as UTF-8 bytes plus a length.
+
+### Open questions
+- CSE-13 stops the CLI and server running together, and rules out `--workers 2`.
+- `kill -9` doesn't prove `fsync` works, because the OS keeps data from a finished `write()`. Only power loss exercises it. On macOS look at `F_FULLFSYNC`.
+- `valgrind` has no solid support on recent macOS, so CSE-5 may need AddressSanitizer plus `leaks`.
+
 ## Later (ideas, not started)
 - Show a "thinking..." state while waiting for Gemini.
 - Show the whole conversation instead of only the latest reply.

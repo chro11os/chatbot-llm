@@ -1,8 +1,8 @@
 # TODOLIST
 
-## Project: Chat Storage Engine (C)
+## Project: Chat Storage Engine (C++)
 
-**Goal:** Replace `memory/chatmemory.json` with a crash-safe, append-only log written in C.
+**Goal:** Replace `memory/chatmemory.json` with a crash-safe, append-only log written in C++.
 
 **Out of scope:** multiple chats, an index, compaction, and frontend changes.
 
@@ -21,7 +21,7 @@
 ## Milestone 2: Core log
 
 - [ ] **CSE-3: Append a record** (Depends on: CSE-1)
-  - Done when: `cse/main.c` appends 3 messages, and `hexdump` shows bytes matching your spec.
+  - Done when: `cse/main.cpp` appends 3 messages, and `hexdump` shows bytes matching your spec.
 - [ ] **CSE-4: Read all records** (Depends on: CSE-3)
   - Done when: messages come back identical and in order, including empty text, newlines, quotes and non-English text.
 - [ ] **CSE-5: Run clean under the memory tools** (Depends on: CSE-4)
