@@ -7,4 +7,5 @@ int main () {
     std::getline(std::cin, user_input);
     
     std::cout << user_input << "\n";
+    
 }
