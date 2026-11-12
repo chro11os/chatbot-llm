@@ -24,3 +24,4 @@ Needs reinforcement:
 
 ## Scope change
 - 2026-11-12: learner handed the frontend UI to Claude (edits files directly, no learning checkpoints there). Learning focus: backend and CSE. The CSE-1 pending decision is unchanged.
+- 2026-11-13: learner asked Claude to finish the whole app, including the CSE, and confirmed the override. Learning paused. Claude made the CSE-1/2/8/9/13 design decisions (length+crc framing, one record per turn, cut torn tail / refuse mid-file damage, per-operation flock); these are Claude's decisions, not demonstrated learner reasoning. The CSE-1 pending decision is closed by that implementation.

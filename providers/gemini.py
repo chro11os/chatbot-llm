@@ -28,6 +28,6 @@ def call_api(text):
                 if part["type"] == "text":
                     reply += part["text"]
     print (reply)
-    return reply
+    return reply, data.get("usage", {})
 
     # i might be losing my mind

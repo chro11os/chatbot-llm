@@ -2,6 +2,8 @@
 
 ## Working rules
 
+> **Paused 2026-11-13:** at my request Claude writes all the code directly (frontend, backend, CSE). The rules below are kept for when I switch learning back on.
+
 ### Working mode: snippet generator only
 
 - Do NOT edit, create, or delete files in this project. Reply with code snippets in chat; I paste them in myself.
@@ -93,55 +95,6 @@ chatbot-llm/
 
 - [ ] Check in the browser: headings, bold and lists render with no leftover `**` / `###`.
 
-### Next up
-- [ ] Backend: return Gemini's `usage` from `call_api` and `/api/chat` so the frontend usage ring fills (snippet given 2026-11-12).
-- [ ] Backend: catch Gemini errors other than timeouts (e.g. `httpx.HTTPStatusError`) in `/api/chat` so they return a clear status instead of a bare 500.
-
-### Chat storage engine architecture
-
-Tickets live in `context/MILESTONE.md`. This section is the design they build on.
-
-#### What it replaces
-- `add_to_history` (`core/json_format.py`) rewrites the whole file for every message, so a crash mid-write can lose all history.
-- `chat` (`server.py`) saves the two messages of a turn separately, so a crash between them leaves a user message with no reply (CSE-2).
-- `chat` is a plain `def`, so FastAPI runs it on a thread pool and concurrent requests can overwrite each other (CSE-12).
-- `/api/history` reads the JSON file directly, skipping `json_format.py`, so CSE-16 has to change both.
-
-#### Layers
-
-```
-server.py / core/prompt.py       same calls as today
-         |
-core/json_format.py              same function names, new insides
-         |  ctypes (bytes + lengths)
-======== Python / C++ boundary ========
-C API: extern "C" functions      thin: no logic, catches all exceptions
-         |
-Engine: class                    owns file descriptor, mutex, open/append/read/clear
-         |             |
-Record codec           OS calls
-bytes <-> message      open, write, fsync, flock, ftruncate
-+ checksum, no I/O     |
-                 memory/<log file>
-```
-
-#### Paths
-- Write: encode record -> take lock -> write at end of file -> flush to disk -> release -> return success. Success only comes after the flush (CSE-7).
-- Read: take lock -> scan from the start, decoding each record -> return all messages.
-- Open: take process lock -> check file identity -> scan records -> handle a bad record. A torn final record (CSE-8) and middle-of-file damage (CSE-9) are decided separately.
-
-#### Rules
-- Mutex for threads in one process (CSE-12), file lock for other processes (CSE-13). Both are needed.
-- `ctypes` releases the GIL during calls, so threads really do enter the C++ code at the same time.
-- No C++ exception may cross `extern "C"`: catch them and return error codes.
-- Python holds the engine as an opaque handle (`void*`).
-- Memory allocated in C++ is freed in C++, so read results need a matching free function.
-- Text crosses the boundary as UTF-8 bytes plus a length.
-
-#### Open questions
-- CSE-13 stops the CLI and server running together, and rules out `--workers 2`.
-- `kill -9` doesn't prove `fsync` works, because the OS keeps data from a finished `write()`. Only power loss exercises it. On macOS look at `F_FULLFSYNC`.
-- `valgrind` has no solid support on recent macOS, so CSE-5 may need AddressSanitizer plus `leaks`.
 
 ### Later (ideas, not started)
 - Let `Button` / `TextBox` accept normal HTML props (`ComponentProps<'button'>`, `placeholder`, etc.).
@@ -186,3 +139,14 @@ bytes <-> message      open, write, fsync, flock, ftruncate
 - Done: dark theme by default (`index.css` sets `color-scheme: dark` + dark body; `prose-invert` for Markdown; components recolored). No light mode yet.
 - Done: resizable columns. `App.tsx` uses flex with a drag bar (`Handle`, pointer capture) between columns; side columns clamp to 200px–half the window, Chat takes the rest. Widths reset on reload.
 - Done: pixel pet fixed bottom-right (`components/pet.tsx`, original sprite in Claude-ish orange, animations in `index.css`). It bobs and blinks; bobs faster with a `thinking…` bubble while a request runs. Click-through (`pointer-events-none`), still under reduced motion.
+
+### 2026-11-13: Chat storage engine + backend finished (written by Claude)
+- Engine: `cse/engine.cpp` builds to `cse/libcse.dylib` (command in README). Append-only log `memory/chat.log`: `"CSE1"` header, then records `[u32 len][u32 crc32][payload]`.
+  - Append: encode, mutex (threads) + `flock` (processes), one `write()`, `F_FULLFSYNC`/`fsync`, then success. A failed write is truncated back off.
+  - Open: a torn final record is cut off; a bad record with data after it makes open refuse (no guessing). Reads take a shared `flock`, so the CLI and server can run together.
+  - C API (`extern "C"`, catches everything, returns 0/-1): `cse_open/append/read_all/free/clear/close`. Python holds a `void*`; read buffers are freed with `cse_free`.
+- Python: `core/json_format.py` wraps it in `Log` via ctypes. One record = one JSON list of messages, so a turn (user + model) saves atomically (`add_turn`). `read_history()` backs `/api/history`. The old `memory/chatmemory.json` (32 messages) was imported once and renamed `chatmemory.json.imported`.
+- Backend: `call_api` returns `(reply, usage)`; `/api/chat` returns `usage` (fills the usage ring) and maps Gemini HTTP errors to 502 with the detail. CLI: `/clear` and `/quit` no longer also send the command to Gemini.
+- Verified: `uv run python cse/test_engine.py` passes (round trip, 8 threads x 50 appends, torn tail, mid-file damage, clear, `kill -9` mid-append). A real `/api/chat` call returned usage and saved the turn. `bun run build` passes.
+- Not verified: power loss (the only true `fsync` test), memory leaks (`leaks`/ASan not run).
+- Left alone: `cse/main.cpp` (your uncommitted practice code) and `cse/get_userinput.cpp`; `cse/userinput` is a tracked binary.
