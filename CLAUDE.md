@@ -150,3 +150,10 @@ chatbot-llm/
 - Verified: `uv run python cse/test_engine.py` passes (round trip, 8 threads x 50 appends, torn tail, mid-file damage, clear, `kill -9` mid-append). A real `/api/chat` call returned usage and saved the turn. `bun run build` passes.
 - Not verified: power loss (the only true `fsync` test), memory leaks (`leaks`/ASan not run).
 - Left alone: `cse/main.cpp` (your uncommitted practice code) and `cse/get_userinput.cpp`; `cse/userinput` is a tracked binary.
+
+### 2026-11-13: Chat sessions (written by Claude)
+- Fixed: server wouldn't start on Linux because `cse/libcse.dylib` (gitignored build output) didn't exist. Rebuild with the README command on each new machine or after editing `engine.cpp`.
+- Done: each saved message carries a `session` id (`add_turn(..., session)`, CLI uses `"cli"`). `/api/chat` requires `session`.
+- Done: History column lists sessions (newest first, titled by the first message, with turn count); clicking one opens it in Chat; "New chat" starts a fresh id (`crypto.randomUUID()`). Messages saved before sessions show as "Older messages". Session buttons are disabled mid-request.
+- Not done: Gemini still gets only the newest message, so it doesn't remember earlier turns in a session.
+- Verified: `bun run build` + eslint pass; a real `/api/chat` call saved its turn with the session id. Not checked in the browser yet.

@@ -71,8 +71,11 @@ def _log():
     return log
 
 
-def add_turn(user_text, model_text):
-    _log().append([{"role": "user", "text": user_text}, {"role": "model", "text": model_text}])
+def add_turn(user_text, model_text, session="cli"):
+    _log().append([
+        {"role": "user", "text": user_text, "session": session},
+        {"role": "model", "text": model_text, "session": session},
+    ])
 
 
 def read_history():

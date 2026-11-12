@@ -4,7 +4,17 @@ import ReplyScreen from "./components/replyscreen";
 import type { Usage } from "./components/usagering";
 import Pet from "./components/pet";
 
-type Msg = { role: string; text: string }
+type Msg = { role: string; text: string; session?: string }
+
+// Messages saved before sessions existed have no id; they share one group.
+function groupBySession(history: Msg[]) {
+    const groups = new Map<string, Msg[]>()
+    for (const m of history) {
+        const id = m.session ?? 'imported'
+        groups.set(id, [...(groups.get(id) ?? []), m])
+    }
+    return [...groups].reverse() // newest session first
+}
 type Turn = { text: string; status: number; ms: number; body: unknown }
 
 function Messages({ items }: { items: Msg[] }) {
@@ -34,6 +44,7 @@ const clamp = (w: number) => Math.min(Math.max(w, 200), window.innerWidth / 2)
 export default function App() {
     const [left, setLeft] = useState(() => window.innerWidth / 3)
     const [right, setRight] = useState(() => window.innerWidth / 3)
+    const [session, setSession] = useState<string>(() => crypto.randomUUID())
     const [history, setHistory] = useState<Msg[]>([])
     const [messages, setMessages] = useState<Msg[]>([])
     const [turns, setTurns] = useState<Turn[]>([])
@@ -59,7 +70,7 @@ export default function App() {
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text, session }),
         })
         const body = await res.json().catch(() => null)
         // updates after an await must be wrapped to stay part of the action
@@ -73,12 +84,30 @@ export default function App() {
         loadHistory()
     }
 
+    function open(id: string, msgs: Msg[]) {
+        setSession(id)
+        setMessages(msgs)
+    }
+
     return (
         <div className="flex h-screen">
             <Pet thinking={thinking} />
             <section style={{ width: left }} className="shrink-0 overflow-y-auto">
-                <h2 className="font-bold m-4">History ({history.length})</h2>
-                <Messages items={history} />
+                <div className="flex items-center justify-between m-4">
+                    <h2 className="font-bold">History</h2>
+                    {/* disabled mid-request so the reply can't land in a different session */}
+                    <button disabled={thinking} onClick={() => open(crypto.randomUUID(), [])}
+                        className="text-sm px-2 py-1 border border-gray-700 hover:bg-gray-800 disabled:opacity-50">
+                        New chat
+                    </button>
+                </div>
+                {groupBySession(history).map(([id, msgs]) => (
+                    <button key={id} disabled={thinking} onClick={() => open(id, msgs)}
+                        className={`block w-full text-left px-4 py-2 text-sm truncate hover:bg-gray-800 disabled:opacity-50 ${id === session ? 'bg-gray-800' : ''}`}>
+                        {id === 'imported' ? 'Older messages' : msgs[0].text}
+                        <span className="text-gray-500"> · {msgs.length / 2}</span>
+                    </button>
+                ))}
             </section>
             <Handle onDrag={dx => setLeft(w => clamp(w + dx))} />
             <section className="flex-1 min-w-0 flex flex-col h-screen">
