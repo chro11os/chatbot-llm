@@ -5,6 +5,7 @@
 ### Working mode: snippet generator only
 
 - Do NOT edit, create, or delete files in this project. Reply with code snippets in chat; I paste them in myself.
+- Exception: Claude owns the frontend UI and edits files under `frontend/` directly. I'm focusing on the backend and CSE, where the snippet rule still applies.
 - Don't run commands that change anything (installs, formatters, git, scripts that write files). Read-only looks are fine if you need context.
 - Keep snippets small and focused on what I asked for. No full-file rewrites unless I ask.
 - Always give me the minimal snippet or code I'm asking for, doesnt have to be a polished code that thinks about all the cases and edge cases. I want something that works minimally.
@@ -93,9 +94,8 @@ chatbot-llm/
 - [ ] Check in the browser: headings, bold and lists render with no leftover `**` / `###`.
 
 ### Next up
-- [ ] Guard `chatbox.tsx` against error responses: check `res.ok` before `res.json()`. Right now any backend error (500, 504) makes `res.json()` throw inside the form action and React unmounts the whole page (blank screen).
+- [ ] Backend: return Gemini's `usage` from `call_api` and `/api/chat` so the frontend usage ring fills (snippet given 2026-11-12).
 - [ ] Backend: catch Gemini errors other than timeouts (e.g. `httpx.HTTPStatusError`) in `/api/chat` so they return a clear status instead of a bare 500.
-- [ ] `ui/button.tsx`: add `border` so `border-gray-300` actually shows.
 
 ### Chat storage engine architecture
 
@@ -144,11 +144,8 @@ bytes <-> message      open, write, fsync, flock, ftruncate
 - `valgrind` has no solid support on recent macOS, so CSE-5 may need AddressSanitizer plus `leaks`.
 
 ### Later (ideas, not started)
-- Show a "thinking..." state while waiting for Gemini.
-- Show the whole conversation instead of only the latest reply.
 - Let `Button` / `TextBox` accept normal HTML props (`ComponentProps<'button'>`, `placeholder`, etc.).
 - Error boundary so a crash shows a message instead of a blank page.
-- Three-column harness UI.
 
 ## Progress
 
@@ -176,3 +173,16 @@ bytes <-> message      open, write, fsync, flock, ftruncate
 - Cleanup: removed an accidental root `package.json` (bun belongs only in `frontend/`).
 - Not committed yet: Markdown + `ui/` changes.
 - Next: `res.ok` guard in `chatbox.tsx` (see "Next up" in Plan).
+
+### 2026-11-12: Harness UI (Claude owns frontend/)
+- Done: `App.tsx` is now three columns: History (from `/api/history`, refetched after each turn), Chat (the whole session conversation plus `Chatbox`), Debug (status, ms and raw body for each `/api/chat` call; red when it errors).
+- Done: the fetch moved from `Chatbox` to `App.send`; `Chatbox` takes `onSend(text)`. Error responses show as a message instead of blanking the page (`res.ok` guard).
+- Done: `ui/button.tsx` border shows.
+- Verified: `tsc` + eslint are clean except `react-markdown` missing from `node_modules` (it's in package.json; run `bun install` in `frontend/`). Not checked in the browser yet.
+- Done: loading state. The message shows in Chat straight away with a `thinking…` placeholder (`useOptimistic`); the textbox and button are disabled and the button reads `Sending…` while the request runs (`useFormStatus` + `<fieldset disabled>`).
+- Done: `TextBox` is a `<textarea>` that grows with its content (`field-sizing-content`, 6–16rem). Enter sends, Shift+Enter adds a new line.
+- Verified: `bun run build` + eslint pass. Not checked in the browser yet.
+- Done: usage ring above the Send button (`components/usagering.tsx`). It fills toward an arbitrary 100k-token session budget; hovering shows session input/output/thought tokens and the last turn. It reads `body.usage` from each `/api/chat` reply, so it stays empty until the backend returns usage. Resets on page reload.
+- Done: dark theme by default (`index.css` sets `color-scheme: dark` + dark body; `prose-invert` for Markdown; components recolored). No light mode yet.
+- Done: resizable columns. `App.tsx` uses flex with a drag bar (`Handle`, pointer capture) between columns; side columns clamp to 200px–half the window, Chat takes the rest. Widths reset on reload.
+- Done: pixel pet fixed bottom-right (`components/pet.tsx`, original sprite in Claude-ish orange, animations in `index.css`). It bobs and blinks; bobs faster with a `thinking…` bubble while a request runs. Click-through (`pointer-events-none`), still under reduced motion.

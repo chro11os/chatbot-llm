@@ -1,2 +1,14 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* ponytail: dark only for now; light mode later = swap these via prefers-color-scheme */
+:root { color-scheme: dark; }
+body { @apply bg-gray-950 text-gray-100; }
+
+/* Pet animations (components/pet.tsx) */
+@keyframes pet-bob { 50% { transform: translateY(-3px); } }
+@keyframes pet-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+.pet-bob { animation: pet-bob 2s ease-in-out infinite; }
+.pet-fast { animation-duration: 0.5s; }
+.pet-eye { transform-box: fill-box; transform-origin: center; animation: pet-blink 4s infinite; }
+@media (prefers-reduced-motion: reduce) { .pet-bob, .pet-eye { animation: none; } }

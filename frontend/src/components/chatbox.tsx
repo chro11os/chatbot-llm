@@ -1,24 +1,26 @@
+import { useFormStatus } from 'react-dom'
 import Button from '../ui/button'
 import TextBox from '../ui/text-box'
-export default function Chatbox({ onReply }: { onReply: (text: string) => void }) {
-  async function send(formData: FormData) {
-          const res = await fetch('/api/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: formData.get('text') }),
-          })
-          const data = await res.json()
-          onReply(data.reply)
-      }
+import UsageRing, { type Usage } from './usagering'
 
+// useFormStatus only works in a component rendered *inside* the <form>
+function Fields({ usage }: { usage: Usage[] }) {
+    const { pending } = useFormStatus()
     return (
-        <div className="justify-center items-center flex">
-            <form action={send}>
-                <div className="items-center flex justify-center m-7">
-                    <TextBox />
-                </div>
-                    <Button>Send</Button>
-            </form>
-        </div>
+        <fieldset disabled={pending} className="flex items-end w-full">
+            <TextBox />
+            <div className="flex flex-col items-center">
+                <UsageRing usage={usage} />
+                <Button>{pending ? 'Sending…' : 'Send'}</Button>
+            </div>
+        </fieldset>
+    )
+}
+
+export default function Chatbox({ onSend, usage }: { onSend: (text: string) => Promise<void>; usage: Usage[] }) {
+    return (
+        <form action={(formData) => onSend(formData.get('text') as string)} className="p-2">
+            <Fields usage={usage} />
+        </form>
     )
 }
